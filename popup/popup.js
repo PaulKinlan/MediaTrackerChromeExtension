@@ -38,7 +38,8 @@ function displayMedia(mediaHistory) {
             const filename = sanitizeFilename(downloadBtn.dataset.filename, url, downloadBtn.dataset.type);
             chrome.downloads.download({
                 url: url,
-                filename: filename
+                filename: filename,
+                conflictAction: 'uniquify'
             });
         });
 
@@ -77,19 +78,45 @@ function truncateText(text, maxLength) {
 
 // Get file extension from URL and content type
 function getFileExtension(url, contentType) {
+    // Common media extensions
+    const validExtensions = {
+        video: ['mp4', 'webm', 'mkv', 'avi', 'mov', 'm4v', 'flv'],
+        audio: ['mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac', 'wma']
+    };
+
     // Try to get extension from URL
     const urlMatch = url.toLowerCase().match(/\.([a-z0-9]+)(?:[?#]|$)/i);
-    if (urlMatch && ['mp4', 'mp3', 'wav', 'webm', 'ogg', 'm4a', 'aac'].includes(urlMatch[1])) {
-        return '.' + urlMatch[1];
+    if (urlMatch) {
+        const ext = urlMatch[1].toLowerCase();
+        // Check if the extension is valid for the content type
+        if ((contentType === 'video' && validExtensions.video.includes(ext)) ||
+            (contentType === 'audio' && validExtensions.audio.includes(ext))) {
+            return '.' + ext;
+        }
     }
 
-    // Fallback to content type mapping
-    const typeToExt = {
+    // Try to get extension from URL parameters
+    try {
+        const urlObj = new URL(url);
+        const format = urlObj.searchParams.get('format');
+        if (format) {
+            const formatExt = format.toLowerCase();
+            if ((contentType === 'video' && validExtensions.video.includes(formatExt)) ||
+                (contentType === 'audio' && validExtensions.audio.includes(formatExt))) {
+                return '.' + formatExt;
+            }
+        }
+    } catch (e) {
+        // Invalid URL, continue to fallback
+    }
+
+    // Fallback to default extensions
+    const defaultExt = {
         'video': '.mp4',
         'audio': '.mp3'
     };
 
-    return typeToExt[contentType] || '';
+    return defaultExt[contentType] || '';
 }
 
 // Sanitize filename to remove invalid characters while preserving extension
@@ -97,18 +124,26 @@ function sanitizeFilename(filename, url, contentType) {
     // Get the extension from URL or content type
     const extension = getFileExtension(url, contentType);
     
-    // Remove any existing extension from the filename
-    filename = filename.replace(/\.[^/.]+$/, '');
+    // Remove any existing extension and invalid characters from the filename
+    filename = filename
+        .replace(/\.[^/.]+$/, '') // Remove existing extension
+        .replace(/[<>:"/\\|?*\x00-\x1F]/g, '') // Remove invalid characters
+        .replace(/\s+/g, '_') // Replace spaces with underscores
+        .replace(/^\.+/, '') // Remove leading dots
+        .trim();
     
-    // Replace invalid characters with underscore
-    const sanitized = filename.replace(/[^a-zA-Z0-9-_]/g, '_');
-    
-    // Ensure filename is not empty
-    if (!sanitized) {
-        return 'download' + extension;
+    // Ensure filename is not empty and not too long
+    if (!filename) {
+        filename = contentType + '_download';
     }
     
-    return sanitized + extension;
+    // Limit filename length (Windows has 255 character limit including extension)
+    const maxLength = 240 - extension.length;
+    if (filename.length > maxLength) {
+        filename = filename.substring(0, maxLength);
+    }
+    
+    return filename + extension;
 }
 
 // Load media history
