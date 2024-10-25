@@ -61,7 +61,10 @@ function displayMedia(items) {
                     Found on: <a href="${item.pageUrl}" target="_blank" title="${escapeHtml(item.pageUrl)}">${escapeHtml(truncatedPageUrl)}</a> |
                     Time: ${new Date(item.timestamp).toLocaleString()}
                 </div>
-                <button class="download-btn" data-url="${item.url}" data-filename="${escapeHtml(formattedTitle)}">Download</button>
+                <div class="media-actions">
+                    <button class="download-btn" data-url="${item.url}" data-filename="${escapeHtml(formattedTitle)}">Download</button>
+                    <button class="delete-btn" data-url="${item.url}" data-page-url="${item.pageUrl}" data-timestamp="${item.timestamp}">Delete</button>
+                </div>
             </div>
         `;
 
@@ -71,6 +74,19 @@ function displayMedia(items) {
             chrome.downloads.download({
                 url: downloadBtn.dataset.url,
                 filename: sanitizeFilename(downloadBtn.dataset.filename)
+            });
+        });
+
+        // Add delete button click handler
+        const deleteBtn = mediaItem.querySelector('.delete-btn');
+        deleteBtn.addEventListener('click', () => {
+            chrome.runtime.sendMessage({
+                type: 'DELETE_MEDIA',
+                payload: {
+                    url: deleteBtn.dataset.url,
+                    pageUrl: deleteBtn.dataset.pageUrl,
+                    timestamp: deleteBtn.dataset.timestamp
+                }
             });
         });
 

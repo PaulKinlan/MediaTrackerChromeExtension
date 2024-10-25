@@ -23,7 +23,10 @@ function displayMedia(mediaHistory) {
                 <div class="media-title" title="${formattedTitle}">${truncatedTitle}</div>
                 <div class="media-url">${truncateText(item.url, 40)}</div>
                 <div class="media-time">${new Date(item.timestamp).toLocaleString()}</div>
-                <button class="download-btn" data-url="${item.url}" data-filename="${formattedTitle}">Download</button>
+                <div class="media-actions">
+                    <button class="download-btn" data-url="${item.url}" data-filename="${formattedTitle}">Download</button>
+                    <button class="delete-btn" data-url="${item.url}" data-page-url="${item.pageUrl}" data-timestamp="${item.timestamp}">Delete</button>
+                </div>
             </div>
         `;
         mediaList.appendChild(mediaItem);
@@ -34,6 +37,19 @@ function displayMedia(mediaHistory) {
             chrome.downloads.download({
                 url: downloadBtn.dataset.url,
                 filename: sanitizeFilename(downloadBtn.dataset.filename)
+            });
+        });
+
+        // Add delete button click handler
+        const deleteBtn = mediaItem.querySelector('.delete-btn');
+        deleteBtn.addEventListener('click', () => {
+            chrome.runtime.sendMessage({
+                type: 'DELETE_MEDIA',
+                payload: {
+                    url: deleteBtn.dataset.url,
+                    pageUrl: deleteBtn.dataset.pageUrl,
+                    timestamp: deleteBtn.dataset.timestamp
+                }
             });
         });
     });
@@ -75,6 +91,14 @@ function getFileExtension(url) {
 chrome.storage.local.get(['mediaHistory'], (result) => {
     const mediaHistory = result.mediaHistory || [];
     displayMedia(mediaHistory);
+});
+
+// Listen for storage changes
+chrome.storage.onChanged.addListener((changes) => {
+    if (changes.mediaHistory) {
+        const mediaHistory = changes.mediaHistory.newValue || [];
+        displayMedia(mediaHistory);
+    }
 });
 
 // View full history button
