@@ -9,14 +9,29 @@
     <div class="container">
         <h1>Media History</h1>
         <div class="controls">
-            <input type="text" id="search" placeholder="Search media...">
-            <select id="filter">
-                <option value="all">All Types</option>
-                <option value="video">Video</option>
-                <option value="audio">Audio</option>
-            </select>
+            <div class="search-row">
+                <input type="text" id="search" placeholder="Search media, URLs, or sources...">
+                <button id="clearSearch">Clear</button>
+            </div>
+            <div class="filter-row">
+                <select id="filter">
+                    <option value="all">All Types</option>
+                    <option value="video">Video</option>
+                    <option value="audio">Audio</option>
+                </select>
+                <input type="date" id="dateFrom" title="From Date">
+                <input type="date" id="dateTo" title="To Date">
+                <select id="sortBy">
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="title">Title A-Z</option>
+                </select>
+            </div>
         </div>
         <div id="mediaList"></div>
+        <div id="noResults" class="no-results" style="display: none;">
+            No media found matching your criteria
+        </div>
     </div>
     <script src="newtab.js"></script>
 </body>
