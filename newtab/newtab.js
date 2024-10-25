@@ -25,9 +25,31 @@ function displayMedia(items) {
                 Found on: <a href="${item.pageUrl}" target="_blank">${escapeHtml(item.pageUrl)}</a> |
                 Time: ${new Date(item.timestamp).toLocaleString()}
             </div>
+            <button class="download-btn" data-url="${item.url}" data-filename="${escapeHtml(item.title)}">Download</button>
         `;
+
+        // Add download button click handler
+        const downloadBtn = mediaItem.querySelector('.download-btn');
+        downloadBtn.addEventListener('click', () => {
+            chrome.downloads.download({
+                url: downloadBtn.dataset.url,
+                filename: sanitizeFilename(downloadBtn.dataset.filename)
+            });
+        });
+
         mediaList.appendChild(mediaItem);
     });
+}
+
+// Sanitize filename to remove invalid characters
+function sanitizeFilename(filename) {
+    return filename.replace(/[^a-zA-Z0-9-_]/g, '_') + getFileExtension(filename);
+}
+
+// Get file extension from URL
+function getFileExtension(url) {
+    const match = url.match(/\.(mp4|mp3|wav|webm)$/i);
+    return match ? match[0] : '';
 }
 
 // Escape HTML to prevent XSS

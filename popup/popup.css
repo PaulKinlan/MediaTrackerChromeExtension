@@ -32,6 +32,21 @@ h1 {
     word-break: break-all;
 }
 
+.download-btn {
+    align-self: flex-start;
+    margin-top: 8px;
+    padding: 4px 8px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.download-btn:hover {
+    background: #45a049;
+}
+
 #viewAll {
     width: 100%;
     padding: 8px;

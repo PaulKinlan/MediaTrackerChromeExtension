@@ -5,7 +5,8 @@
   "description": "Detects and logs media from web pages with history viewing capabilities",
   "permissions": [
     "storage",
-    "tabs"
+    "tabs",
+    "downloads"
   ],
   "host_permissions": [
     "<all_urls>"
