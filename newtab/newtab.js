@@ -10,15 +10,48 @@ function formatTitle(title) {
         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ');
     
-    // Remove common file extensions
-    title = title.replace(/\.(mp4|mp3|wav|webm)$/i, '');
-    
     return title;
 }
 
 // Truncate text with ellipsis
 function truncateText(text, maxLength) {
     return text.length > maxLength ? text.slice(0, maxLength) + '...' : text;
+}
+
+// Get file extension from URL and content type
+function getFileExtension(url, contentType) {
+    // Try to get extension from URL
+    const urlMatch = url.toLowerCase().match(/\.([a-z0-9]+)(?:[?#]|$)/i);
+    if (urlMatch && ['mp4', 'mp3', 'wav', 'webm', 'ogg', 'm4a', 'aac'].includes(urlMatch[1])) {
+        return '.' + urlMatch[1];
+    }
+
+    // Fallback to content type mapping
+    const typeToExt = {
+        'video': '.mp4',
+        'audio': '.mp3'
+    };
+
+    return typeToExt[contentType] || '';
+}
+
+// Sanitize filename to remove invalid characters while preserving extension
+function sanitizeFilename(filename, url, contentType) {
+    // Get the extension from URL or content type
+    const extension = getFileExtension(url, contentType);
+    
+    // Remove any existing extension from the filename
+    filename = filename.replace(/\.[^/.]+$/, '');
+    
+    // Replace invalid characters with underscore
+    const sanitized = filename.replace(/[^a-zA-Z0-9-_]/g, '_');
+    
+    // Ensure filename is not empty
+    if (!sanitized) {
+        return 'download' + extension;
+    }
+    
+    return sanitized + extension;
 }
 
 // Display media items
@@ -62,7 +95,7 @@ function displayMedia(items) {
                     Time: ${new Date(item.timestamp).toLocaleString()}
                 </div>
                 <div class="media-actions">
-                    <button class="download-btn" data-url="${item.url}" data-filename="${escapeHtml(formattedTitle)}">Download</button>
+                    <button class="download-btn" data-url="${item.url}" data-filename="${escapeHtml(formattedTitle)}" data-type="${item.type}">Download</button>
                     <button class="delete-btn" data-url="${item.url}" data-page-url="${item.pageUrl}" data-timestamp="${item.timestamp}">Delete</button>
                 </div>
             </div>
@@ -71,9 +104,11 @@ function displayMedia(items) {
         // Add download button click handler
         const downloadBtn = mediaItem.querySelector('.download-btn');
         downloadBtn.addEventListener('click', () => {
+            const url = downloadBtn.dataset.url;
+            const filename = sanitizeFilename(downloadBtn.dataset.filename, url, downloadBtn.dataset.type);
             chrome.downloads.download({
-                url: downloadBtn.dataset.url,
-                filename: sanitizeFilename(downloadBtn.dataset.filename)
+                url: url,
+                filename: filename
             });
         });
 
@@ -102,17 +137,6 @@ function escapeHtml(unsafe) {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
-}
-
-// Sanitize filename to remove invalid characters
-function sanitizeFilename(filename) {
-    return filename.replace(/[^a-zA-Z0-9-_]/g, '_') + getFileExtension(filename);
-}
-
-// Get file extension from URL
-function getFileExtension(url) {
-    const match = url.match(/\.(mp4|mp3|wav|webm)$/i);
-    return match ? match[0] : '';
 }
 
 // Filter media based on search, type, and date range
