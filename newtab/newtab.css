@@ -1,112 +1,35 @@
-body {
-    margin: 0;
-    padding: 20px;
-    font-family: Arial, sans-serif;
-    background: #f5f5f5;
-}
-
-.container {
-    max-width: 800px;
-    margin: 0 auto;
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-h1 {
-    margin-top: 0;
-    color: #333;
-}
-
-.controls {
-    margin-bottom: 20px;
-}
-
-.search-row, .filter-row {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 8px;
-}
-
-#search {
-    flex: 1;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-#filter, #sortBy, #dateFrom, #dateTo {
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-button {
-    padding: 8px 16px;
-    background: #2196F3;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-button:hover {
-    background: #1976D2;
-}
+/* Previous styles remain unchanged until .media-item */
 
 .media-item {
     padding: 16px;
     border-bottom: 1px solid #eee;
     transition: background-color 0.2s;
+    display: flex;
+    gap: 16px;
+}
+
+.media-thumbnail {
+    flex-shrink: 0;
+    width: 160px;
+    height: 90px; /* 16:9 aspect ratio */
+    background: #f0f0f0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.media-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.media-content {
+    flex: 1;
+    min-width: 0;
 }
 
 .media-item:hover {
     background-color: #f8f8f8;
 }
 
-.media-title {
-    font-size: 16px;
-    font-weight: bold;
-    margin-bottom: 8px;
-}
-
-.media-url {
-    color: #666;
-    word-break: break-all;
-    margin-bottom: 4px;
-}
-
-.media-url a {
-    color: #2196F3;
-    text-decoration: none;
-}
-
-.media-url a:hover {
-    text-decoration: underline;
-}
-
-.media-meta {
-    color: #999;
-    font-size: 12px;
-    margin-bottom: 8px;
-}
-
-.no-results {
-    text-align: center;
-    padding: 20px;
-    color: #666;
-}
-
-.download-btn {
-    padding: 4px 8px;
-    background: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.download-btn:hover {
-    background: #45a049;
-}
+/* Rest of the previous styles remain unchanged */

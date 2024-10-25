@@ -18,7 +18,27 @@ h1 {
     padding: 8px;
     border-bottom: 1px solid #eee;
     display: flex;
-    flex-direction: column;
+    gap: 12px;
+}
+
+.media-thumbnail {
+    flex-shrink: 0;
+    width: 120px;
+    height: 67.5px; /* 16:9 aspect ratio */
+    background: #f0f0f0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.media-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.media-content {
+    flex: 1;
+    min-width: 0;
 }
 
 .media-title {
@@ -30,6 +50,12 @@ h1 {
     color: #666;
     font-size: 12px;
     word-break: break-all;
+}
+
+.media-time {
+    color: #999;
+    font-size: 12px;
+    margin-top: 4px;
 }
 
 .download-btn {

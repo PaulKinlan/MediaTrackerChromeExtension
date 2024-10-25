@@ -6,11 +6,21 @@ function displayMedia(mediaHistory) {
     mediaHistory.slice(0, 10).forEach(item => {
         const mediaItem = document.createElement('div');
         mediaItem.className = 'media-item';
+        
+        // Create thumbnail element for videos
+        const thumbnailHtml = item.type === 'video' && item.thumbnail ? 
+            `<div class="media-thumbnail">
+                <img src="${item.thumbnail}" alt="Video thumbnail">
+            </div>` : '';
+
         mediaItem.innerHTML = `
-            <div class="media-title">${item.title}</div>
-            <div class="media-url">${item.url}</div>
-            <div class="media-time">${new Date(item.timestamp).toLocaleString()}</div>
-            <button class="download-btn" data-url="${item.url}" data-filename="${item.title}">Download</button>
+            ${thumbnailHtml}
+            <div class="media-content">
+                <div class="media-title">${item.title}</div>
+                <div class="media-url">${item.url}</div>
+                <div class="media-time">${new Date(item.timestamp).toLocaleString()}</div>
+                <button class="download-btn" data-url="${item.url}" data-filename="${item.title}">Download</button>
+            </div>
         `;
         mediaList.appendChild(mediaItem);
 
