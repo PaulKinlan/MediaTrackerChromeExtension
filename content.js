@@ -1,21 +1,47 @@
 // Function to capture video thumbnail
 async function captureVideoThumbnail(videoElement) {
     return new Promise((resolve) => {
-        const canvas = document.createElement('canvas');
-        canvas.width = 160;  // thumbnail width
-        canvas.height = 90;  // 16:9 aspect ratio
-
-        // Wait for video metadata to load
-        if (videoElement.readyState >= 2) {
-            captureFrame();
+        // First check if video has a poster attribute
+        const posterUrl = videoElement.getAttribute('poster');
+        if (posterUrl) {
+            // Create an image element to load the poster
+            const img = new Image();
+            img.crossOrigin = 'anonymous';  // Handle CORS
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                canvas.width = 160;  // thumbnail width
+                canvas.height = 90;  // 16:9 aspect ratio
+                const context = canvas.getContext('2d');
+                context.drawImage(img, 0, 0, canvas.width, canvas.height);
+                resolve(canvas.toDataURL('image/jpeg', 0.7));
+            };
+            img.onerror = function() {
+                // Fallback to video frame capture if poster loading fails
+                captureFromVideo();
+            };
+            img.src = posterUrl;
         } else {
-            videoElement.addEventListener('loadeddata', captureFrame);
+            // No poster attribute, capture from video
+            captureFromVideo();
         }
 
-        function captureFrame() {
-            const context = canvas.getContext('2d');
-            context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-            resolve(canvas.toDataURL('image/jpeg', 0.7));
+        function captureFromVideo() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 160;  // thumbnail width
+            canvas.height = 90;  // 16:9 aspect ratio
+
+            // Wait for video metadata to load
+            if (videoElement.readyState >= 2) {
+                captureFrame();
+            } else {
+                videoElement.addEventListener('loadeddata', captureFrame);
+            }
+
+            function captureFrame() {
+                const context = canvas.getContext('2d');
+                context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+                resolve(canvas.toDataURL('image/jpeg', 0.7));
+            }
         }
     });
 }
