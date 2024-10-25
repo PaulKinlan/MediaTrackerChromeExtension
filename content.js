@@ -20,11 +20,76 @@ async function captureVideoThumbnail(videoElement) {
     });
 }
 
+// Function to extract title from URL
+function extractTitleFromUrl(url) {
+    try {
+        const urlObj = new URL(url);
+        // Get the filename from the path
+        let filename = urlObj.pathname.split('/').pop();
+        // Remove extension and decode URI components
+        filename = decodeURIComponent(filename.replace(/\.[^/.]+$/, ''));
+        // Replace common separators with spaces
+        filename = filename.replace(/[-_+]/g, ' ');
+        // Capitalize first letter of each word
+        filename = filename.split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(' ');
+        return filename;
+    } catch (e) {
+        return '';
+    }
+}
+
+// Function to get closest heading
+function getClosestHeading(element) {
+    let current = element;
+    while (current && current !== document) {
+        // Check previous siblings
+        let sibling = current.previousElementSibling;
+        while (sibling) {
+            const heading = sibling.querySelector('h1, h2, h3, h4, h5, h6');
+            if (heading) return heading.textContent.trim();
+            sibling = sibling.previousElementSibling;
+        }
+        // Move up to parent
+        current = current.parentElement;
+    }
+    return null;
+}
+
+// Function to extract smart title
+function extractSmartTitle(element, url) {
+    // Try to get title from element attributes
+    const elementTitle = element.title || element.getAttribute('aria-label');
+    if (elementTitle) return elementTitle;
+
+    // Try to get title from nearby heading
+    const headingTitle = getClosestHeading(element);
+    if (headingTitle) return headingTitle;
+
+    // Try to get title from meta tags
+    const metaTitle = document.querySelector('meta[property="og:title"]')?.content ||
+                     document.querySelector('meta[name="title"]')?.content;
+    if (metaTitle) return metaTitle;
+
+    // Try to get title from page title
+    const pageTitle = document.title;
+    if (pageTitle && pageTitle !== 'newtab') return pageTitle;
+
+    // Extract from URL as last resort
+    const urlTitle = extractTitleFromUrl(url);
+    if (urlTitle) return urlTitle;
+
+    // Fallback
+    return 'Untitled Media';
+}
+
 // Function to extract media information
 async function extractMediaInfo(element) {
+    const url = element.src || element.currentSrc;
     const info = {
-        url: element.src || element.currentSrc,
-        title: element.title || document.title,
+        url: url,
+        title: extractSmartTitle(element, url),
         type: element.tagName.toLowerCase(),
         timestamp: new Date().toISOString(),
         pageUrl: window.location.href,
