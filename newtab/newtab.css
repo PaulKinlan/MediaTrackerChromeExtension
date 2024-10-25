@@ -1,4 +1,64 @@
-/* Previous styles remain unchanged until .media-item */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background: #f5f5f5;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+h1 {
+    margin: 0 0 20px 0;
+    color: #333;
+}
+
+.controls {
+    margin-bottom: 20px;
+}
+
+.search-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+#search {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.filter-row {
+    display: flex;
+    gap: 10px;
+}
+
+select, input[type="date"] {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+button {
+    padding: 8px 16px;
+    background: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #1976D2;
+}
 
 .media-item {
     padding: 16px;
@@ -28,8 +88,60 @@
     min-width: 0;
 }
 
+.media-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    line-height: 1.4;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: default;
+}
+
+.media-title:hover {
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+.media-url, .media-meta {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.media-url a, .media-meta a {
+    color: #2196F3;
+    text-decoration: none;
+}
+
+.media-url a:hover, .media-meta a:hover {
+    text-decoration: underline;
+}
+
+.download-btn {
+    padding: 6px 12px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 8px;
+}
+
+.download-btn:hover {
+    background: #45a049;
+}
+
 .media-item:hover {
     background-color: #f8f8f8;
 }
 
-/* Rest of the previous styles remain unchanged */
+.no-results {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+    font-size: 16px;
+}

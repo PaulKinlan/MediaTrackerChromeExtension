@@ -1,5 +1,26 @@
 let mediaHistory = [];
 
+// Format title for better readability
+function formatTitle(title) {
+    // Remove extra spaces and normalize whitespace
+    title = title.trim().replace(/\s+/g, ' ');
+    
+    // Ensure proper capitalization
+    title = title.split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+    
+    // Remove common file extensions
+    title = title.replace(/\.(mp4|mp3|wav|webm)$/i, '');
+    
+    return title;
+}
+
+// Truncate text with ellipsis
+function truncateText(text, maxLength) {
+    return text.length > maxLength ? text.slice(0, maxLength) + '...' : text;
+}
+
 // Display media items
 function displayMedia(items) {
     const mediaList = document.getElementById('mediaList');
@@ -22,19 +43,25 @@ function displayMedia(items) {
                 <img src="${item.thumbnail}" alt="Video thumbnail">
             </div>` : '';
 
+        // Format and truncate title
+        const formattedTitle = formatTitle(item.title);
+        const truncatedTitle = truncateText(formattedTitle, 70);
+        const truncatedUrl = truncateText(item.url, 60);
+        const truncatedPageUrl = truncateText(item.pageUrl, 60);
+
         mediaItem.innerHTML = `
             ${thumbnailHtml}
             <div class="media-content">
-                <div class="media-title">${escapeHtml(item.title)}</div>
+                <div class="media-title" title="${escapeHtml(formattedTitle)}">${escapeHtml(truncatedTitle)}</div>
                 <div class="media-url">
-                    <a href="${item.url}" target="_blank">${escapeHtml(item.url)}</a>
+                    <a href="${item.url}" target="_blank" title="${escapeHtml(item.url)}">${escapeHtml(truncatedUrl)}</a>
                 </div>
                 <div class="media-meta">
                     Type: ${item.type} | 
-                    Found on: <a href="${item.pageUrl}" target="_blank">${escapeHtml(item.pageUrl)}</a> |
+                    Found on: <a href="${item.pageUrl}" target="_blank" title="${escapeHtml(item.pageUrl)}">${escapeHtml(truncatedPageUrl)}</a> |
                     Time: ${new Date(item.timestamp).toLocaleString()}
                 </div>
-                <button class="download-btn" data-url="${item.url}" data-filename="${escapeHtml(item.title)}">Download</button>
+                <button class="download-btn" data-url="${item.url}" data-filename="${escapeHtml(formattedTitle)}">Download</button>
             </div>
         `;
 
@@ -103,7 +130,7 @@ function filterMedia() {
             case 'oldest':
                 return new Date(a.timestamp) - new Date(b.timestamp);
             case 'title':
-                return a.title.localeCompare(b.title);
+                return formatTitle(a.title).localeCompare(formatTitle(b.title));
             default:
                 return 0;
         }
