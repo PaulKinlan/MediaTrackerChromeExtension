@@ -71,16 +71,42 @@ button:hover {
 .media-thumbnail {
     flex-shrink: 0;
     width: 160px;
-    height: 90px; /* 16:9 aspect ratio */
+    height: 90px;
     background: #f0f0f0;
     border-radius: 4px;
     overflow: hidden;
+    cursor: pointer;
+    position: relative;
+}
+
+.media-thumbnail:hover .play-overlay {
+    opacity: 1;
 }
 
 .media-thumbnail img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+.play-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.play-overlay::after {
+    content: "►";
+    color: white;
+    font-size: 24px;
 }
 
 .media-content {
@@ -127,7 +153,7 @@ button:hover {
     margin-top: 8px;
 }
 
-.download-btn, .delete-btn {
+.download-btn, .delete-btn, .play-btn {
     padding: 6px 12px;
     border: none;
     border-radius: 4px;
@@ -153,6 +179,15 @@ button:hover {
     background: #d32f2f;
 }
 
+.play-btn {
+    background: #2196F3;
+    color: white;
+}
+
+.play-btn:hover {
+    background: #1976D2;
+}
+
 .media-item:hover {
     background-color: #f8f8f8;
 }
@@ -162,4 +197,47 @@ button:hover {
     padding: 40px;
     color: #666;
     font-size: 16px;
+}
+
+.media-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.media-modal.active {
+    display: flex;
+}
+
+.media-player-container {
+    position: relative;
+    max-width: 90%;
+    max-height: 90%;
+}
+
+.media-player {
+    max-width: 100%;
+    max-height: 80vh;
+}
+
+.close-modal {
+    position: absolute;
+    top: -30px;
+    right: 0;
+    color: white;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.close-modal:hover {
+    color: #ddd;
 }

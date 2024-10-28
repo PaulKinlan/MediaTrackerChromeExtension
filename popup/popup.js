@@ -7,10 +7,11 @@ function displayMedia(mediaHistory) {
         const mediaItem = document.createElement('div');
         mediaItem.className = 'media-item';
         
-        // Create thumbnail element for videos
+        // Create thumbnail element for videos with play overlay
         const thumbnailHtml = item.type === 'video' && item.thumbnail ? 
             `<div class="media-thumbnail">
                 <img src="${item.thumbnail}" alt="Video thumbnail">
+                <div class="play-overlay"></div>
             </div>` : '';
 
         // Format title for better readability
@@ -24,12 +25,25 @@ function displayMedia(mediaHistory) {
                 <div class="media-url">${truncateText(item.url, 40)}</div>
                 <div class="media-time">${new Date(item.timestamp).toLocaleString()}</div>
                 <div class="media-actions">
+                    <button class="play-btn" data-url="${item.url}" data-type="${item.type}">Play</button>
                     <button class="download-btn" data-url="${item.url}" data-filename="${formattedTitle}" data-type="${item.type}">Download</button>
                     <button class="delete-btn" data-url="${item.url}" data-page-url="${item.pageUrl}" data-timestamp="${item.timestamp}">Delete</button>
                 </div>
             </div>
         `;
         mediaList.appendChild(mediaItem);
+
+        // Add play functionality for thumbnail and play button
+        if (item.type === 'video') {
+            const thumbnail = mediaItem.querySelector('.media-thumbnail');
+            if (thumbnail) {
+                thumbnail.addEventListener('click', () => playMedia(item.url, item.type));
+            }
+        }
+
+        // Add play button click handler
+        const playBtn = mediaItem.querySelector('.play-btn');
+        playBtn.addEventListener('click', () => playMedia(item.url, item.type));
 
         // Add download button click handler
         const downloadBtn = mediaItem.querySelector('.download-btn');
@@ -55,6 +69,49 @@ function displayMedia(mediaHistory) {
                 }
             });
         });
+    });
+}
+
+// Handle media playback
+function playMedia(url, type) {
+    const modal = document.querySelector('.media-modal');
+    const playerContainer = modal.querySelector('.media-player');
+    const closeBtn = modal.querySelector('.close-modal');
+
+    // Create media element
+    const mediaElement = document.createElement(type);
+    mediaElement.src = url;
+    mediaElement.controls = true;
+    mediaElement.autoplay = true;
+    mediaElement.className = 'media-player';
+
+    // Clear previous content and add new media element
+    playerContainer.innerHTML = '';
+    playerContainer.appendChild(mediaElement);
+
+    // Show modal
+    modal.classList.add('active');
+
+    // Handle close button click
+    closeBtn.onclick = () => {
+        modal.classList.remove('active');
+        mediaElement.pause();
+        mediaElement.src = '';
+        playerContainer.innerHTML = '';
+    };
+
+    // Handle click outside modal
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            closeBtn.onclick();
+        }
+    };
+
+    // Handle escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeBtn.onclick();
+        }
     });
 }
 
@@ -88,7 +145,6 @@ function getFileExtension(url, contentType) {
     const urlMatch = url.toLowerCase().match(/\.([a-z0-9]+)(?:[?#]|$)/i);
     if (urlMatch) {
         const ext = urlMatch[1].toLowerCase();
-        // Check if the extension is valid for the content type
         if ((contentType === 'video' && validExtensions.video.includes(ext)) ||
             (contentType === 'audio' && validExtensions.audio.includes(ext))) {
             return '.' + ext;
