@@ -1,46 +1,113 @@
-// Function to capture video thumbnail
+// Function to capture video thumbnail with enhanced CORS handling
 async function captureVideoThumbnail(videoElement) {
-    return new Promise((resolve) => {
-        // First check if video has a poster attribute
+    return new Promise(async (resolve) => {
+        // Track if we've successfully captured a thumbnail
+        let thumbnailCaptured = false;
+
+        // Method 1: Try poster attribute first
         const posterUrl = videoElement.getAttribute('poster');
-        if (posterUrl) {
-            // Create an image element to load the poster
-            const img = new Image();
-            img.crossOrigin = 'anonymous';  // Handle CORS
-            img.onload = function() {
+        if (posterUrl && !thumbnailCaptured) {
+            try {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                
+                // Create a blob URL if the poster is a blob
+                if (posterUrl.startsWith('blob:')) {
+                    const response = await fetch(posterUrl);
+                    const blob = await response.blob();
+                    img.src = URL.createObjectURL(blob);
+                } else {
+                    img.src = posterUrl;
+                }
+
+                await new Promise((resolve, reject) => {
+                    img.onload = resolve;
+                    img.onerror = reject;
+                });
+
                 const canvas = document.createElement('canvas');
-                canvas.width = 160;  // thumbnail width
-                canvas.height = 90;  // 16:9 aspect ratio
+                canvas.width = 160;
+                canvas.height = 90;
                 const context = canvas.getContext('2d');
                 context.drawImage(img, 0, 0, canvas.width, canvas.height);
-                resolve(canvas.toDataURL('image/jpeg', 0.7));
-            };
-            img.onerror = function() {
-                // Fallback to video frame capture if poster loading fails
-                captureFromVideo();
-            };
-            img.src = posterUrl;
-        } else {
-            // No poster attribute, capture from video
-            captureFromVideo();
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                thumbnailCaptured = true;
+                resolve(dataUrl);
+            } catch (error) {
+                console.log('Poster capture failed, trying video frame capture');
+            }
         }
 
-        function captureFromVideo() {
-            const canvas = document.createElement('canvas');
-            canvas.width = 160;  // thumbnail width
-            canvas.height = 90;  // 16:9 aspect ratio
-
-            // Wait for video metadata to load
-            if (videoElement.readyState >= 2) {
-                captureFrame();
-            } else {
-                videoElement.addEventListener('loadeddata', captureFrame);
-            }
-
-            function captureFrame() {
+        // Method 2: Try direct frame capture if poster failed or doesn't exist
+        if (!thumbnailCaptured) {
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = 160;
+                canvas.height = 90;
                 const context = canvas.getContext('2d');
-                context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-                resolve(canvas.toDataURL('image/jpeg', 0.7));
+
+                // Function to capture frame
+                const captureFrame = () => {
+                    try {
+                        context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                        thumbnailCaptured = true;
+                        resolve(dataUrl);
+                    } catch (error) {
+                        if (error.name === 'SecurityError') {
+                            // If CORS error, try creating a local copy
+                            createLocalCopy();
+                        } else {
+                            console.error('Frame capture error:', error);
+                            resolve(null);
+                        }
+                    }
+                };
+
+                // Create a local copy of the video to bypass CORS
+                const createLocalCopy = async () => {
+                    try {
+                        const response = await fetch(videoElement.src);
+                        const blob = await response.blob();
+                        const localUrl = URL.createObjectURL(blob);
+                        const tempVideo = document.createElement('video');
+                        tempVideo.crossOrigin = 'anonymous';
+                        tempVideo.src = localUrl;
+                        
+                        tempVideo.addEventListener('loadeddata', () => {
+                            try {
+                                context.drawImage(tempVideo, 0, 0, canvas.width, canvas.height);
+                                const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                                URL.revokeObjectURL(localUrl);
+                                thumbnailCaptured = true;
+                                resolve(dataUrl);
+                            } catch (error) {
+                                console.error('Local copy capture error:', error);
+                                URL.revokeObjectURL(localUrl);
+                                resolve(null);
+                            }
+                        });
+
+                        tempVideo.addEventListener('error', () => {
+                            console.error('Local copy loading error');
+                            URL.revokeObjectURL(localUrl);
+                            resolve(null);
+                        });
+                    } catch (error) {
+                        console.error('Local copy creation error:', error);
+                        resolve(null);
+                    }
+                };
+
+                // If video is ready, capture frame, otherwise wait for it
+                if (videoElement.readyState >= 2) {
+                    captureFrame();
+                } else {
+                    videoElement.addEventListener('loadeddata', captureFrame);
+                }
+            } catch (error) {
+                console.error('Video capture error:', error);
+                resolve(null);
             }
         }
     });
